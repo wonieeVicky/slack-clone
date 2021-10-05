@@ -11,6 +11,7 @@ module.exports = {
      *   isBetaMember: false
      * }], {});
      */
+    // workspaces: 회사
     await queryInterface.bulkInsert("workspaces", [
       {
         id: 1,
@@ -20,6 +21,7 @@ module.exports = {
         updatedAt: new Date(),
       },
     ]);
+    // channels: 부서
     await queryInterface.bulkInsert("channels", [
       {
         id: 1,
