@@ -8,7 +8,7 @@
 
 ### env
 
-- React
+- React + TypeScript
 - SWR
 - Emotion(styled-component)
 - Socket.io
