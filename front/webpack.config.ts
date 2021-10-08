@@ -1,12 +1,17 @@
 ﻿import path from 'path';
-import webpack from 'webpack';
-// import ReactRefreshWebpackPlugin from '@pmmmwh/react-refresh-webpack-plugin';
-// import ForkTsCheckerWebpackPlugin from 'fork-ts-checker-webpack-plugin';
-// import { BundleAnalyzerPlugin } from 'webpack-bundle-analyzer';
+import ReactRefreshWebpackPlugin from '@pmmmwh/react-refresh-webpack-plugin';
+import webpack, { Configuration as WebpackConfiguration } from 'webpack';
+import { Configuration as WebpackDevServerConfiguration } from 'webpack-dev-server';
+
+interface Configuration extends WebpackConfiguration {
+  devServer?: WebpackDevServerConfiguration;
+}
+
+import ForkTsCheckerWebpackPlugin from 'fork-ts-checker-webpack-plugin';
 
 const isDevelopment = process.env.NODE_ENV !== 'production';
 
-const config: webpack.Configuration = {
+const config: Configuration = {
   name: 'sleact',
   mode: isDevelopment ? 'development' : 'production',
   devtool: !isDevelopment ? 'hidden-source-map' : 'eval',
@@ -28,7 +33,7 @@ const config: webpack.Configuration = {
   module: {
     rules: [
       {
-        test: /\.tsx?$/, // ts파일이나 tsx 파일을 babel-loader가 자바스크립트로 변환한다.
+        test: /\.tsx?$/, // ts 파일이나 tsx 파일을 babel-loader가 자바스크립트로 변환한다.
         loader: 'babel-loader',
         options: {
           presets: [
@@ -42,6 +47,11 @@ const config: webpack.Configuration = {
             '@babel/preset-react', // react code 변환
             '@babel/preset-typescript', // typescript code 변환
           ],
+          env: {
+            development: {
+              plugins: [require.resolve('react-refresh/babel')],
+            },
+          },
         },
         exclude: path.join(__dirname, 'node_modules'),
       },
@@ -52,38 +62,38 @@ const config: webpack.Configuration = {
     ],
   },
   plugins: [
-    // typescript 변환 시 필요
-    // new ForkTsCheckerWebpackPlugin({
-    //   async: false,
-    //   // eslint: {
-    //   //   files: "./src/**/*",
-    //   // },
-    // }),
-    new webpack.EnvironmentPlugin({ NODE_ENV: isDevelopment ? 'development' : 'production' }), // react에서 NODE_ENV를 사용할 수 있도록 해 줌
+    new ForkTsCheckerWebpackPlugin({
+      async: false,
+      // eslint: {
+      //   files: "./src/**/*",
+      // },
+    }),
+    new webpack.EnvironmentPlugin({ NODE_ENV: isDevelopment ? 'development' : 'production' }),
   ],
   output: {
-    // client.tsx부터 만들어진 모든 파일이 나오는 경로
     path: path.join(__dirname, 'dist'),
     filename: '[name].js',
     publicPath: '/dist/',
   },
-  // devServer: {
-  //   historyApiFallback: true, // react router
-  //   port: 3090,
-  //   publicPath: '/dist/',
-  //   proxy: {
-  //     '/api/': {
-  //       target: 'http://localhost:3095',
-  //       changeOrigin: true,
-  //     },
-  //   },
-  // },
+  devServer: {
+    historyApiFallback: true,
+    port: 3090,
+    devMiddleware: { publicPath: '/dist/' },
+    static: { directory: path.resolve(__dirname) },
+    /* proxy: {
+      '/api/': {
+        target: 'http://localhost:3095',
+        changeOrigin: true,
+        ws: true,
+      },
+    }, */
+  },
 };
 
 // 개발 환경 플러그인
 if (isDevelopment && config.plugins) {
-  // config.plugins.push(new webpack.HotModuleReplacementPlugin());
-  // config.plugins.push(new ReactRefreshWebpackPlugin());
+  config.plugins.push(new webpack.HotModuleReplacementPlugin());
+  config.plugins.push(new ReactRefreshWebpackPlugin());
   // config.plugins.push(new BundleAnalyzerPlugin({ analyzerMode: 'server', openAnalyzer: true }));
 }
 // 런타임 환경 플러그인
