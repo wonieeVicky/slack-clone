@@ -1,27 +1,20 @@
 ﻿import React, { useState, useCallback } from 'react';
+import useInput from '@hooks/useInput'; // hook import
 import { Header, Form, Label, Input, Error, Button, LinkContainer } from './styles';
 
 const SignUp = () => {
-  const [email, setEmail] = useState('');
-  const [nickname, setNickname] = useState('');
-  const [password, setPassword] = useState('');
-  const [passwordCheck, setPasswordCheck] = useState('');
+  const [email, onChangeEmail] = useInput('');
+  const [nickname, onChangeNickname] = useInput('');
+  const [password, , setPassword] = useInput('');
+  const [passwordCheck, , setPasswordCheck] = useInput('');
   const [mismatchError, setMismatchError] = useState(false);
-
-  const onChangeEmail = useCallback((e) => {
-    setEmail(e.target.value);
-  }, []);
-
-  const onChangeNickname = useCallback((e) => {
-    setNickname(e.target.value);
-  }, []);
 
   const onChangePassword = useCallback(
     (e) => {
       setPassword(e.target.value);
       setMismatchError(e.target.value !== passwordCheck);
     },
-    [passwordCheck],
+    [passwordCheck, setPassword],
   );
 
   const onChangePasswordCheck = useCallback(
@@ -29,14 +22,14 @@ const SignUp = () => {
       setPasswordCheck(e.target.value);
       setMismatchError(e.target.value !== password);
     },
-    [password],
+    [password, setPasswordCheck],
   );
 
   const onSubmit = useCallback(
     (e) => {
       e.preventDefault();
-      console.log(email, nickname, password, passwordCheck);
-      if (!mismatchError) {
+      console.log(email, nickname, password, passwordCheck, mismatchError);
+      if (!mismatchError && nickname) {
         console.log('go submit!');
       }
     },
