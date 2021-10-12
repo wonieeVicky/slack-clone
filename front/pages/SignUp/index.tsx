@@ -1,7 +1,7 @@
 ﻿import React, { useState, useCallback } from 'react';
 import useInput from '@hooks/useInput'; // hook import
 import axios from 'axios';
-import { Header, Form, Label, Input, Error, Button, LinkContainer } from './styles';
+import { Header, Form, Label, Input, Error, Button, LinkContainer, Success } from './styles';
 
 const SignUp = () => {
   const [email, onChangeEmail] = useInput('');
@@ -9,6 +9,8 @@ const SignUp = () => {
   const [password, , setPassword] = useInput('');
   const [passwordCheck, , setPasswordCheck] = useInput('');
   const [mismatchError, setMismatchError] = useState(false);
+  const [signUpError, setSignUpError] = useState('');
+  const [signUpSuccess, setSignUpSuccess] = useState(false);
 
   const onChangePassword = useCallback(
     (e) => {
@@ -30,18 +32,21 @@ const SignUp = () => {
     (e) => {
       e.preventDefault();
       if (!mismatchError && nickname) {
-        console.log('go submit!');
+        // 비동기 요청 안에서 state 변경 코드가 들어갈 경우 코드 시작 전에 초기화 코드를 넣어주는 것이 좋다.
+        setSignUpError('');
+        setSignUpSuccess(false);
         axios
-          .post('http://localhost:3095/api/users', {
+          .post('/api/users', {
             email,
             nickname,
             password,
           })
           .then((response) => {
             console.log(response);
+            setSignUpSuccess(true);
           })
           .catch((err) => {
-            console.log(err.response);
+            setSignUpError(err.response.data);
           })
           .finally(() => {});
       }
@@ -84,6 +89,8 @@ const SignUp = () => {
           </div>
           {mismatchError && <Error>비밀번호가 일치하지 않습니다.</Error>}
           {!nickname && <Error>닉네임을 입력해주세요.</Error>}
+          {signUpError && <Error>{signUpError}</Error>}
+          {signUpSuccess && <Success>환영합니다! 이제 로그인해주세요.</Success>}
         </Label>
         <Button type="submit">회원가입</Button>
       </Form>
