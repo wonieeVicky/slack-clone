@@ -1,5 +1,6 @@
 ﻿import React, { useState, useCallback } from 'react';
 import useInput from '@hooks/useInput'; // hook import
+import axios from 'axios';
 import { Header, Form, Label, Input, Error, Button, LinkContainer } from './styles';
 
 const SignUp = () => {
@@ -28,12 +29,24 @@ const SignUp = () => {
   const onSubmit = useCallback(
     (e) => {
       e.preventDefault();
-      console.log(email, nickname, password, passwordCheck, mismatchError);
       if (!mismatchError && nickname) {
         console.log('go submit!');
+        axios
+          .post('http://localhost:3095/api/users', {
+            email,
+            nickname,
+            password,
+          })
+          .then((response) => {
+            console.log(response);
+          })
+          .catch((err) => {
+            console.log(err.response);
+          })
+          .finally(() => {});
       }
     },
-    [email, nickname, password, passwordCheck, mismatchError],
+    [email, nickname, password, mismatchError],
   );
 
   return (
