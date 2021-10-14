@@ -3,8 +3,11 @@ import { Link } from 'react-router-dom';
 import axios from 'axios';
 import useInput from '@hooks/useInput';
 import { Form, Error, Label, Input, LinkContainer, Button, Header } from '@pages/SignUp/styles';
+import useSWR from 'swr';
+import fetcher from '@utils/fetcher';
 
 const LogIn = () => {
+  const { data, error } = useSWR('/api/users', fetcher); // 로그인 후 데이터 전달, fetcher에서 주소를 어떻게 처리할지 작성한다.
   const [logInError, setLogInError] = useState(false);
   const [email, onChangeEmail] = useInput('');
   const [password, onChangePassword] = useInput('');
@@ -14,7 +17,7 @@ const LogIn = () => {
       e.preventDefault();
       setLogInError(false);
       axios
-        .post('/api/users/login', { email, password })
+        .post('/api/users/login', { email, password }, { withCredentials: true })
         .then((response) => {})
         .catch((error) => {
           setLogInError(error.response?.data?.statusCode === 401);
