@@ -7,7 +7,9 @@ import useSWR from 'swr';
 import fetcher from '@utils/fetcher';
 
 const LogIn = () => {
-  const { data, error } = useSWR('/api/users', fetcher); // 로그인 후 데이터 전달, fetcher에서 주소를 어떻게 처리할지 작성한다.
+  const { data, error, mutate } = useSWR('/api/users', fetcher, {
+    dedupingInterval: 100000,
+  }); // 로그인 후 데이터 전달, fetcher에서 주소를 어떻게 처리할지 작성한다.
   const [logInError, setLogInError] = useState(false);
   const [email, onChangeEmail] = useInput('');
   const [password, onChangePassword] = useInput('');
@@ -18,7 +20,9 @@ const LogIn = () => {
       setLogInError(false);
       axios
         .post('/api/users/login', { email, password }, { withCredentials: true })
-        .then((response) => {})
+        .then((response) => {
+          mutate();
+        })
         .catch((error) => {
           setLogInError(error.response?.data?.statusCode === 401);
         });
