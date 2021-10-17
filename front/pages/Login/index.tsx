@@ -1,14 +1,15 @@
 ﻿import React, { useState, useCallback } from 'react';
 import { Link, Redirect } from 'react-router-dom';
-import axios from 'axios';
+import axios, { AxiosResponse } from 'axios';
 import useInput from '@hooks/useInput';
 import { Form, Error, Label, Input, LinkContainer, Button, Header } from '@pages/SignUp/styles';
 import useSWR from 'swr';
 import fetcher from '@utils/fetcher';
+import { IUser } from '@typings/db';
 
 const LogIn = () => {
   // 로그인 후 데이터 전달, fetcher에서 주소를 어떻게 처리할지 작성한다.
-  const { data, error, mutate } = useSWR('/api/users', fetcher, {
+  const { data, error, mutate } = useSWR<IUser | false>('/api/users', fetcher, {
     dedupingInterval: 100000,
   });
   const [logInError, setLogInError] = useState(false);
@@ -20,9 +21,15 @@ const LogIn = () => {
       e.preventDefault();
       setLogInError(false);
       axios
-        .post('http://localhost:3095/api/users/login', { email, password }, { withCredentials: true })
-        .then(() => mutate())
-        .catch((error) => setLogInError(error.response?.data?.statusCode === 401));
+        .post(
+          '/api/users/login',
+          { email, password },
+          {
+            withCredentials: true,
+          },
+        )
+        .then((response: AxiosResponse<any>) => mutate(response.data, false))
+        .catch((error) => setLogInError(error.response?.data?.code === 401));
     },
     [email, password],
   );
