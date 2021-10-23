@@ -3,7 +3,7 @@ import React, { CSSProperties, FC, useCallback } from 'react';
 
 interface Props {
   show: boolean;
-  onCloseModal: () => void;
+  onCloseModal: (e: any) => void;
   style: CSSProperties;
   closeButton?: boolean;
 }
