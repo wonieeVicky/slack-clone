@@ -1,7 +1,8 @@
-﻿import React, { useCallback, useState } from 'react';
+﻿import React, { useCallback, useState, VFC } from 'react';
 import axios from 'axios';
 import { Switch, Route, Redirect, Link } from 'react-router-dom';
 import useSWR from 'swr';
+import gravatar from 'gravatar';
 import loadable from '@loadable/component';
 import { toast, ToastContainer } from 'react-toastify';
 import fetcher from '@utils/fetcher';
@@ -20,21 +21,24 @@ import {
   LogOutButton,
   WorkspaceButton,
   AddButton,
+  WorkspaceModal,
 } from './styles';
-import gravatar from 'gravatar';
+import 'react-toastify/dist/ReactToastify.css';
 import Menu from '@components/Menu';
 import { Button, Input, Label } from '@pages/SignUp/styles';
 import Modal from '@components/Modal';
 import useInput from '@hooks/useInput';
-import 'react-toastify/dist/ReactToastify.css';
+import CreateChannelModal from '@components/CreateChannelModal';
 
 const Channel = loadable(() => import('@pages/Channel'));
 const DirectMessage = loadable(() => import('@pages/DirectMessage'));
 
 // FC 타입 안에 children이 들어있음, children을 안쓸 경우 VFC로 사용한다.
-const Workspace = () => {
+const Workspace: VFC = () => {
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [showCreateWorkspaceModal, setShowCreateWorkspaceModal] = useState(false);
+  const [showWorkspaceModal, setShowWorkspaceModal] = useState(false);
+  const [showCreateChannelModal, setShowCreateChannelModal] = useState(false);
   const [newWorkspace, onChangeNewWorkspace, setNewWorkspace] = useInput('');
   const [newUrl, onChangeNewUrl, setNewUrl] = useInput('');
   const {
@@ -95,11 +99,24 @@ const Workspace = () => {
     [newWorkspace, newUrl],
   );
 
-  const onCloseModal = useCallback(() => setShowCreateWorkspaceModal(false), []);
+  const onCloseModal = useCallback(() => {
+    setShowCreateWorkspaceModal(false);
+    setShowCreateChannelModal(false);
+  }, []);
+
+  const toggleWorkspaceModal = useCallback(() => {
+    setShowWorkspaceModal((prev) => !prev);
+  }, []);
+
+  const onClickAddChannel = useCallback(() => {
+    setShowCreateChannelModal(true);
+  }, []);
 
   if (!userData) {
     return <Redirect to="/login" />;
   }
+
+  // if문이나 반복문, 이벤트 핸들러 이벤트는 return이나 hooks 아래에 있으면 안된다. Invalid hook call 발생
 
   return (
     <div>
@@ -134,8 +151,17 @@ const Workspace = () => {
           <AddButton onClick={onClickCreateWorkspace}>+</AddButton>;
         </Workspaces>
         <Channels>
-          <WorkspaceName>Sleact</WorkspaceName>
-          <MenuScroll>MenuScroll</MenuScroll>
+          <WorkspaceName onClick={toggleWorkspaceModal}>Sleact</WorkspaceName>
+          <MenuScroll>
+            <Menu show={showWorkspaceModal} onCloseModal={toggleWorkspaceModal} style={{ top: 95, left: 80 }}>
+              <WorkspaceModal>
+                <h2>Sleact</h2>
+                {/* <button onClick={onClickInviteWorkspace}>워크스페이스에 사용자 초대</button> */}
+                <button onClick={onClickAddChannel}>채널 만들기</button>
+                <button onClick={onLogout}>로그아웃</button>
+              </WorkspaceModal>
+            </Menu>
+          </MenuScroll>
         </Channels>
         <Chats>
           <Switch>
@@ -158,6 +184,7 @@ const Workspace = () => {
           <Button type="submit">생성하기</Button>
         </form>
       </Modal>
+      <CreateChannelModal show={showCreateChannelModal} onCloseModal={onCloseModal} />
       <ToastContainer position="bottom-center" />
     </div>
   );
