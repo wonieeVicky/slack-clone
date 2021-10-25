@@ -40,7 +40,7 @@ const LogIn = () => {
 
   // data와 error가 바뀌는 순간 리렌더링됨
   if (data) {
-    return <Redirect to="/workspace/channel" />;
+    return <Redirect to="/workspace/sleact/channel/일반" />;
   }
 
   // console.log(error, userData);

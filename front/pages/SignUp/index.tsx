@@ -67,7 +67,7 @@ const SignUp = () => {
 
   // return은 항상 Hooks 보다 아래에 있어야 한다.
   if (data) {
-    return <Redirect to="/workspace/channel" />;
+    return <Redirect to="/workspace/sleact/channel/일반" />;
   }
 
   return (
