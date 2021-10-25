@@ -1,12 +1,13 @@
 ﻿import React, { useCallback, useState, VFC } from 'react';
 import axios from 'axios';
 import { Switch, Route, Redirect, Link } from 'react-router-dom';
+import { useParams } from 'react-router';
 import useSWR from 'swr';
 import gravatar from 'gravatar';
 import loadable from '@loadable/component';
 import { toast, ToastContainer } from 'react-toastify';
 import fetcher from '@utils/fetcher';
-import { IUser } from '@typings/db';
+import { IChannel, IUser } from '@typings/db';
 import {
   Header,
   RightMenu,
@@ -41,6 +42,8 @@ const Workspace: VFC = () => {
   const [showCreateChannelModal, setShowCreateChannelModal] = useState(false);
   const [newWorkspace, onChangeNewWorkspace, setNewWorkspace] = useInput('');
   const [newUrl, onChangeNewUrl, setNewUrl] = useInput('');
+  const { workspace } = useParams<{ workspace: string }>();
+
   const {
     data: userData,
     error,
@@ -49,6 +52,9 @@ const Workspace: VFC = () => {
     dedupingInterval: 2000, // 2초
   });
 
+  // 현재 워크스페이스에 있는 채널들을 모두 가져오기
+  // 만약 로그인하지 않은 상태일 경우 null 처리하여 swr이 요청하지 않도록 처리한다. - 조건부 요청 지원함
+  const { data: channelData } = useSWR<IChannel[]>(userData ? `/api/workspace/${workspace}/channels` : null, fetcher);
   const onLogout = useCallback(
     () => axios.post('/api/users/logout', null, { withCredentials: true }).then(() => revalidateUser(false, false)),
     [],
@@ -161,13 +167,16 @@ const Workspace: VFC = () => {
                 <button onClick={onLogout}>로그아웃</button>
               </WorkspaceModal>
             </Menu>
+            {channelData?.map((v) => (
+              <div>{v.name}</div>
+            ))}
           </MenuScroll>
         </Channels>
         <Chats>
           <Switch>
             {/* 계층적 Route: Switch 안에 Switch가 있을 경우 중첩 path를 가져야 한다.(/workspace) */}
-            <Route path="/workspace/channel" exact component={Channel} />
-            <Route path="/workspace/dm" exact component={DirectMessage} />
+            <Route path="/workspace/:workspace/channel/:channel" exact component={Channel} />
+            <Route path="/workspace/dm/:id" exact component={DirectMessage} />
           </Switch>
         </Chats>
       </WorkspaceWrapper>
@@ -184,7 +193,11 @@ const Workspace: VFC = () => {
           <Button type="submit">생성하기</Button>
         </form>
       </Modal>
-      <CreateChannelModal show={showCreateChannelModal} onCloseModal={onCloseModal} />
+      <CreateChannelModal
+        show={showCreateChannelModal}
+        onCloseModal={onCloseModal}
+        setShowCreateChannelModal={setShowCreateChannelModal}
+      />
       <ToastContainer position="bottom-center" />
     </div>
   );
