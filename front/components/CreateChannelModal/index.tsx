@@ -30,7 +30,7 @@ const CreateChannelModal: VFC<Props> = ({ show, onCloseModal, setShowCreateChann
   // 현재 워크스페이스에 있는 채널들을 모두 가져오기
   // 만약 로그인하지 않은 상태일 경우 null 처리하여 swr이 요청하지 않도록 처리한다. - 조건부 요청 지원함
   const { data: channelData, mutate: revalidateChannel } = useSWR<IChannel[]>(
-    userData ? `/api/workspace/${workspace}/channels` : null,
+    userData ? `/api/workspaces/${workspace}/channels` : null,
     fetcher,
   );
 
