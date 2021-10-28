@@ -32,6 +32,7 @@ import useInput from '@hooks/useInput';
 import CreateChannelModal from '@components/CreateChannelModal';
 import InviteWorkspaceModal from '@components/InviteWorkspaceModal';
 import InviteChannelModal from '@components/InviteChannelModal';
+import DMList from '@components/DMList';
 
 const Channel = loadable(() => import('@pages/Channel'));
 const DirectMessage = loadable(() => import('@pages/DirectMessage'));
@@ -59,6 +60,8 @@ const Workspace: VFC = () => {
   // 현재 워크스페이스에 있는 채널들을 모두 가져오기
   // 만약 로그인하지 않은 상태일 경우 null 처리하여 swr이 요청하지 않도록 처리한다. - 조건부 요청 지원함
   const { data: channelData } = useSWR<IChannel[]>(userData ? `/api/workspaces/${workspace}/channels` : null, fetcher);
+  const { data: memberData } = useSWR<IUser[]>(userData ? `/api/workspaces/${workspace}/members` : null, fetcher);
+
   const onLogout = useCallback(
     () => axios.post('/api/users/logout', null, { withCredentials: true }).then(() => revalidateUser(false, false)),
     [],
@@ -181,16 +184,14 @@ const Workspace: VFC = () => {
                 <button onClick={onLogout}>로그아웃</button>
               </WorkspaceModal>
             </Menu>
-            {channelData?.map((v) => (
-              <div key={v.name}>{v.name}</div>
-            ))}
+            <DMList userData={userData} />
           </MenuScroll>
         </Channels>
+        {/* 계층적 Route: Switch 안에 Switch가 있을 경우 중첩 path를 가져야 한다.(/workspace) */}
         <Chats>
           <Switch>
-            {/* 계층적 Route: Switch 안에 Switch가 있을 경우 중첩 path를 가져야 한다.(/workspace) */}
-            <Route path="/workspace/:workspace/channel/:channel" exact component={Channel} />
-            <Route path="/workspace/dm/:id" exact component={DirectMessage} />
+            <Route path="/workspace/:workspace/channel/:channel" component={Channel} />
+            <Route path="/workspace/:workspace/dm/:id" component={DirectMessage} />
           </Switch>
         </Chats>
       </WorkspaceWrapper>
