@@ -1,6 +1,6 @@
 ﻿// import useSocket from '@hooks/useSocket';
 // import EachDM from '@components/EachDM';
-import { IDM, IUser, IUserWithOnline } from '@typings/db';
+import { IChannel, IDM, IUser, IUserWithOnline } from '@typings/db';
 import { CollapseButton } from '@components/DMList/styles';
 import fetcher from '@utils/fetcher';
 import React, { FC, useCallback, useEffect, useState } from 'react';
@@ -8,60 +8,35 @@ import { useParams } from 'react-router';
 import { NavLink } from 'react-router-dom';
 import useSWR from 'swr';
 
-interface Props {
-  userData?: IUser;
-}
-
-const DMList: FC<Props> = ({ userData }) => {
+const DMList = () => {
   const { workspace } = useParams<{ workspace?: string }>();
+  const { data: userData, mutate: revalidateUser } = useSWR<IUser>('/api/users', fetcher, {
+    dedupingInterval: 2000,
+  });
   const { data: memberData } = useSWR<IUserWithOnline[]>(
     userData ? `/api/workspaces/${workspace}/members` : null,
     fetcher,
   );
   // const [socket] = useSocket(workspace);
   const [channelCollapse, setChannelCollapse] = useState(false);
-  const [countList, setCountList] = useState<{ [key: string]: number }>({});
   const [onlineList, setOnlineList] = useState<number[]>([]);
 
-  const toggleChannelCollapse = useCallback(() => {
-    setChannelCollapse((prev) => !prev);
-  }, []);
-
-  const resetCount = useCallback(
-    (id) => () => {
-      setCountList((list) => {
-        return {
-          ...list,
-          [id]: 0,
-        };
-      });
-    },
-    [],
-  );
-
-  const onMessage = (data: IDM) => {
-    console.log('dm왔다', data);
-    setCountList((list) => {
-      return {
-        ...list,
-        [data.SenderId]: list[data.SenderId] ? list[data.SenderId] + 1 : 1,
-      };
-    });
-  };
+  const toggleChannelCollapse = useCallback(() => setChannelCollapse((prev) => !prev), []);
 
   useEffect(() => {
     console.log('DMList: workspace 바꼈다', workspace);
     setOnlineList([]);
-    setCountList({});
   }, [workspace]);
 
   /* useEffect(() => {
     socket?.on('onlineList', (data: number[]) => {
       setOnlineList(data);
     });
-    console.log('socket on dm', socket?.hasListeners('dm'), socket);
+    // socket?.on('dm', onMessage);
+    // console.log('socket on dm', socket?.hasListeners('dm'), socket);
     return () => {
-      console.log('socket off dm', socket?.hasListeners('dm'));
+      // socket?.off('dm', onMessage);
+      // console.log('socket off dm', socket?.hasListeners('dm'));
       socket?.off('onlineList');
     };
   }, [socket]); */
@@ -82,15 +57,8 @@ const DMList: FC<Props> = ({ userData }) => {
         {!channelCollapse &&
           memberData?.map((member) => {
             const isOnline = onlineList.includes(member.id);
-            const count = countList[member.id] || 0;
-
             return (
-              <NavLink
-                key={member.id}
-                activeClassName="selected"
-                to={`/workspace/${workspace}/dm/${member.id}`}
-                onClick={resetCount(member.id)}
-              >
+              <NavLink key={member.id} activeClassName="selected" to={`/workspace/${workspace}/dm/${member.id}`}>
                 <i
                   className={`c-icon p-channel_sidebar__presence_icon p-channel_sidebar__presence_icon--dim_enabled c-presence ${
                     isOnline ? 'c-presence--active c-icon--presence-online' : 'c-icon--presence-offline'
@@ -101,9 +69,8 @@ const DMList: FC<Props> = ({ userData }) => {
                   data-qa-presence-active="false"
                   data-qa-presence-dnd="false"
                 />
-                <span className={count && count > 0 ? 'bold' : undefined}>{member.nickname}</span>
+                <span>{member.nickname}</span>
                 {member.id === userData?.id && <span> (나)</span>}
-                {(count && count > 0 && <span className="count">{count}</span>) || null}
               </NavLink>
             );
           })}

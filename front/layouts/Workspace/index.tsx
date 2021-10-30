@@ -33,6 +33,7 @@ import CreateChannelModal from '@components/CreateChannelModal';
 import InviteWorkspaceModal from '@components/InviteWorkspaceModal';
 import InviteChannelModal from '@components/InviteChannelModal';
 import DMList from '@components/DMList';
+import ChannelList from '@components/ChannelList';
 
 const Channel = loadable(() => import('@pages/Channel'));
 const DirectMessage = loadable(() => import('@pages/DirectMessage'));
@@ -70,14 +71,6 @@ const Workspace: VFC = () => {
   const onCloseUserProfile = useCallback((e) => {
     e.stopPropagation();
     setShowUserMenu(false);
-  }, []);
-
-  const onClickUserProfile = useCallback(() => {
-    setShowUserMenu((prev) => !prev);
-  }, []);
-
-  const onClickCreateWorkspace = useCallback(() => {
-    setShowCreateWorkspaceModal(true);
   }, []);
 
   const onCreateWorkspace = useCallback(
@@ -119,28 +112,18 @@ const Workspace: VFC = () => {
     setShowInviteChannelModal(false);
   }, []);
 
-  const toggleWorkspaceModal = useCallback(() => {
-    setShowWorkspaceModal((prev) => !prev);
-  }, []);
-
-  const onClickAddChannel = useCallback(() => {
-    setShowCreateChannelModal(true);
-  }, []);
-
-  const onClickInviteWorkspace = useCallback(() => {
-    setShowInviteWorkspaceModal(true);
-  }, []);
-
-  const onClickInviteChannel = useCallback(() => {
-    setShowInviteChannelModal(true);
-  }, []);
+  const onClickUserProfile = useCallback(() => setShowUserMenu((prev) => !prev), []);
+  const onClickCreateWorkspace = useCallback(() => setShowCreateWorkspaceModal(true), []);
+  const toggleWorkspaceModal = useCallback(() => setShowWorkspaceModal((prev) => !prev), []);
+  const onClickAddChannel = useCallback(() => setShowCreateChannelModal(true), []);
+  const onClickInviteWorkspace = useCallback(() => setShowInviteWorkspaceModal(true), []);
+  const onClickInviteChannel = useCallback(() => setShowInviteChannelModal(true), []);
 
   if (!userData) {
     return <Redirect to="/login" />;
   }
 
   // if문이나 반복문, 이벤트 핸들러 이벤트는 return이나 hooks 아래에 있으면 안된다. Invalid hook call 발생
-
   return (
     <div>
       <Header>
@@ -184,7 +167,8 @@ const Workspace: VFC = () => {
                 <button onClick={onLogout}>로그아웃</button>
               </WorkspaceModal>
             </Menu>
-            <DMList userData={userData} />
+            <ChannelList />
+            <DMList />
           </MenuScroll>
         </Channels>
         {/* 계층적 Route: Switch 안에 Switch가 있을 경우 중첩 path를 가져야 한다.(/workspace) */}
