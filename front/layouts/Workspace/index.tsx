@@ -1,4 +1,4 @@
-﻿import React, { useCallback, useState, VFC } from 'react';
+﻿import React, { useCallback, useEffect, useState, VFC } from 'react';
 import axios from 'axios';
 import { Switch, Route, Redirect, Link } from 'react-router-dom';
 import { useParams } from 'react-router';
@@ -34,6 +34,7 @@ import InviteWorkspaceModal from '@components/InviteWorkspaceModal';
 import InviteChannelModal from '@components/InviteChannelModal';
 import DMList from '@components/DMList';
 import ChannelList from '@components/ChannelList';
+import useSocket from '@hooks/useSocket';
 
 const Channel = loadable(() => import('@pages/Channel'));
 const DirectMessage = loadable(() => import('@pages/DirectMessage'));
@@ -62,6 +63,7 @@ const Workspace: VFC = () => {
   // 만약 로그인하지 않은 상태일 경우 null 처리하여 swr이 요청하지 않도록 처리한다. - 조건부 요청 지원함
   const { data: channelData } = useSWR<IChannel[]>(userData ? `/api/workspaces/${workspace}/channels` : null, fetcher);
   const { data: memberData } = useSWR<IUser[]>(userData ? `/api/workspaces/${workspace}/members` : null, fetcher);
+  const [socket, disconnect] = useSocket(workspace);
 
   const onLogout = useCallback(
     () => axios.post('/api/users/logout', null, { withCredentials: true }).then(() => revalidateUser(false, false)),
