@@ -7,7 +7,7 @@ import axios from 'axios';
 const sockets: { [key: string]: SocketIOClient.Socket } = {};
 const backUrl = 'http://localhost:3095';
 
-const useSocket = (workspace?: string) => {
+const useSocket = (workspace?: string): [SocketIOClient.Socket | undefined, () => void] => {
   const disconnect = useCallback(() => {
     if (workspace) {
       sockets[workspace].disconnect();
@@ -18,9 +18,12 @@ const useSocket = (workspace?: string) => {
   if (!workspace) {
     return [undefined, disconnect];
   }
-
-  sockets[workspace] = io.connect(`${backUrl}/ws-${workspace}`);
-
+  // 연결된 웹소켓이 있으면 그 정보를 return 없을 경우에만 connect 시도
+  if (!sockets[workspace]) {
+    sockets[workspace] = io.connect(`${backUrl}/ws-${workspace}`, {
+      transports: ['websocket'], // 초기 연결 시 polling(ie9) 제외하고 websocket만 사용하는 설정
+    });
+  }
   return [sockets[workspace], disconnect];
 };
 
