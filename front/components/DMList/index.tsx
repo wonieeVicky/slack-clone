@@ -1,12 +1,11 @@
-﻿// import useSocket from '@hooks/useSocket';
-// import EachDM from '@components/EachDM';
-import { IChannel, IDM, IUser, IUserWithOnline } from '@typings/db';
+﻿import { IChannel, IDM, IUser, IUserWithOnline } from '@typings/db';
 import { CollapseButton } from '@components/DMList/styles';
 import fetcher from '@utils/fetcher';
 import React, { FC, useCallback, useEffect, useState } from 'react';
 import { useParams } from 'react-router';
 import { NavLink } from 'react-router-dom';
 import useSWR from 'swr';
+import useSocket from '@hooks/useSocket';
 
 const DMList = () => {
   const { workspace } = useParams<{ workspace?: string }>();
@@ -17,18 +16,42 @@ const DMList = () => {
     userData ? `/api/workspaces/${workspace}/members` : null,
     fetcher,
   );
-  // const [socket] = useSocket(workspace);
+  const [socket] = useSocket(workspace);
   const [channelCollapse, setChannelCollapse] = useState(false);
+  const [countList, setCountList] = useState<{ [key: string]: number }>({});
   const [onlineList, setOnlineList] = useState<number[]>([]);
 
   const toggleChannelCollapse = useCallback(() => setChannelCollapse((prev) => !prev), []);
+
+  const resetCount = useCallback(
+    (id) => () => {
+      setCountList((list) => {
+        return {
+          ...list,
+          [id]: 0,
+        };
+      });
+    },
+    [],
+  );
+
+  const onMessage = (data: IDM) => {
+    console.log('dm왔다', data);
+    setCountList((list) => {
+      return {
+        ...list,
+        [data.SenderId]: list[data.SenderId] ? list[data.SenderId] + 1 : 1,
+      };
+    });
+  };
 
   useEffect(() => {
     console.log('DMList: workspace 바꼈다', workspace);
     setOnlineList([]);
   }, [workspace]);
 
-  /* useEffect(() => {
+  useEffect(() => {
+    // 누가 온라인에 있는지
     socket?.on('onlineList', (data: number[]) => {
       setOnlineList(data);
     });
@@ -37,9 +60,9 @@ const DMList = () => {
     return () => {
       // socket?.off('dm', onMessage);
       // console.log('socket off dm', socket?.hasListeners('dm'));
-      socket?.off('onlineList');
+      socket?.off('onlineList'); // 온라인 리스트 정리(clean-up), off를 게을리 하면 이벤트리스너가 불필요하게 중복된다.
     };
-  }, [socket]); */
+  }, [socket]);
 
   return (
     <>
