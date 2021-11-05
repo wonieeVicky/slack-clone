@@ -51,11 +51,7 @@ const Workspace: VFC = () => {
   const [newUrl, onChangeNewUrl, setNewUrl] = useInput('');
   const { workspace } = useParams<{ workspace: string }>();
 
-  const {
-    data: userData,
-    error,
-    mutate: revalidateUser,
-  } = useSWR<IUser | false>('/api/users', fetcher, {
+  const { data: userData, mutate: revalidateUser } = useSWR<IUser | false>('/api/users', fetcher, {
     dedupingInterval: 2000, // 2초
   });
 
@@ -64,6 +60,18 @@ const Workspace: VFC = () => {
   const { data: channelData } = useSWR<IChannel[]>(userData ? `/api/workspaces/${workspace}/channels` : null, fetcher);
   const { data: memberData } = useSWR<IUser[]>(userData ? `/api/workspaces/${workspace}/members` : null, fetcher);
   const [socket, disconnect] = useSocket(workspace);
+
+  useEffect(() => {
+    if (channelData && userData && socket) {
+      console.log(socket);
+      // channelData와 userData, socket이 존재할 떄
+      socket.emit('login', {
+        id: userData.id,
+        channels: channelData.map((v) => v.id),
+      });
+    }
+  }, [channelData, userData, socket]);
+  useEffect(() => () => disconnect(), [workspace, disconnect]); // workspace가 바뀌었을 때에는 disconnect 해준다.
 
   const onLogout = useCallback(
     () => axios.post('/api/users/logout', null, { withCredentials: true }).then(() => revalidateUser(false, false)),
