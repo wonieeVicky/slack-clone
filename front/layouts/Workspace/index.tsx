@@ -63,7 +63,6 @@ const Workspace: VFC = () => {
 
   useEffect(() => {
     if (channelData && userData && socket) {
-      console.log(socket);
       // channelData와 userData, socket이 존재할 떄
       socket.emit('login', {
         id: userData.id,
