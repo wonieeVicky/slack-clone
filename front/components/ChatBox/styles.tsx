@@ -16,7 +16,7 @@ export const Form = styled.form`
   border: 1px solid rgb(29, 28, 29);
 `;
 
-export const MentionsTextarea = styled.textarea`
+export const MentionsTextarea = styled(MentionsInput)`
   font-family: Slack-Lato, appleLogo, sans-serif;
   font-size: 15px;
   padding: 8px 9px;
@@ -61,6 +61,8 @@ export const SendButton = styled.button`
   top: 5px;
 `;
 
+// function a () {} => 실행: a(); 혹은 a``; (tagged template literal)
+// emotion에서는 변수를 props로 내려서 조건부 렌더링이 가능함.
 export const EachMention = styled.button<{ focus: boolean }>`
   padding: 4px 20px;
   background: transparent;
