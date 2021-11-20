@@ -17,7 +17,7 @@ const DirectMessage = () => {
   const { workspace, id } = useParams<{ workspace: string; id: string }>();
   const [chat, onChangeChat, setChat] = useInput('');
   const { data: userData } = useSWR<IUser>(`/api/workspaces/${workspace}/users/${id}`, fetcher);
-  const { data: myData } = useSWR(`/api/users`, fetcher);
+  const { data: myData } = useSWR<IUser>(`/api/users`, fetcher);
   const {
     data: chatData,
     mutate: mutateChat,
@@ -32,23 +32,41 @@ const DirectMessage = () => {
   const isEmpty = chatData?.[0]?.length === 0;
   const isReachingEnd = isEmpty || (chatData && chatData[chatData.length - 1]?.length < 20) || false;
   const scrollbarRef = useRef<Scrollbars>(null);
+
   const onSubmitForm = useCallback(
     (e) => {
-      // DM 보내기
       e.preventDefault();
-      if (chat?.trim()) {
+      console.log(chat);
+      if (chat?.trim() && chatData && myData && userData) {
+        const savedChat = chat;
+        mutateChat((prevChatData) => {
+          prevChatData?.[0].unshift({
+            id: (chatData[0][0]?.id || 0) + 1,
+            content: savedChat,
+            SenderId: myData.id,
+            Sender: myData,
+            ReceiverId: userData.id,
+            Receiver: userData,
+            createdAt: new Date(),
+          });
+          return prevChatData;
+        }, false).then(() => {
+          setChat('');
+          scrollbarRef.current?.scrollToBottom();
+        });
+
         axios
           .post(`/api/workspaces/${workspace}/dms/${id}/chats`, {
             content: chat,
           })
-          .then(() => {
-            setChat('');
+          .then(() => mutateChat())
+          .catch(() => {
+            console.error();
             mutateChat();
-          })
-          .catch(console.error);
+          });
       }
     },
-    [chat],
+    [chat, chatData, myData, userData, workspace, id],
   );
 
   // 로딩 시 스크롤바 제일 아래로
