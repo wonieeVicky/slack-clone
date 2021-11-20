@@ -1,4 +1,4 @@
-﻿import React, { useCallback, forwardRef } from 'react';
+﻿import React, { useCallback, forwardRef, MutableRefObject } from 'react';
 import { ChatZone, Section, StickyHeader } from './styles';
 import { IDM } from '@typings/db';
 import Chat from '@components/Chat';
@@ -7,23 +7,30 @@ import { Scrollbars } from 'react-custom-scrollbars';
 interface Props {
   chatSections: { [key: string]: IDM[] };
   setSize: (f: (size: number) => number) => Promise<IDM[][] | undefined>;
-  isEmpty: boolean;
   isReachingEnd: boolean;
+  scrollRef: MutableRefObject<Scrollbars>;
 }
 
-const ChatList = forwardRef<Scrollbars, Props>(({ chatSections, setSize, isEmpty, isReachingEnd }, ref) => {
-  const onScroll = useCallback((values) => {
-    if (values.scrollTop === 0 && !isReachingEnd) {
-      console.log('top');
-      setSize((prevSize) => prevSize + 1).then(() => {
-        // scroll 위치 유지
-      });
-    }
-  }, []);
+const ChatList = forwardRef<Scrollbars, Props>(({ chatSections, setSize, scrollRef, isReachingEnd }) => {
+  const onScroll = useCallback(
+    (values) => {
+      if (values.scrollTop === 0 && !isReachingEnd) {
+        console.log('top');
+        setSize((prevSize) => prevSize + 1).then(() => {
+          // scroll 위치 유지
+          const current = scrollRef.current;
+          if (current) {
+            current.scrollTop(current.getScrollHeight() - values.scrollHeight);
+          }
+        });
+      }
+    },
+    [scrollRef],
+  );
 
   return (
     <ChatZone>
-      <Scrollbars autoHide ref={ref} onScrollFrame={onScroll}>
+      <Scrollbars autoHide ref={scrollRef} onScrollFrame={onScroll}>
         {Object.entries(chatSections).map(([date, chats]) => {
           return (
             <Section className={`section-${date}`} key={date}>
