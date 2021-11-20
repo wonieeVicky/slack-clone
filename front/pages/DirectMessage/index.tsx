@@ -1,4 +1,4 @@
-﻿import React, { useCallback, useRef } from 'react';
+﻿import React, { useCallback, useRef, useEffect } from 'react';
 import { Container, Header } from './styles';
 import gravatar from 'gravatar';
 import useSWR from 'swr';
@@ -50,6 +50,13 @@ const DirectMessage = () => {
     },
     [chat],
   );
+
+  // 로딩 시 스크롤바 제일 아래로
+  useEffect(() => {
+    if (chatData?.length === 1) {
+      scrollbarRef.current?.scrollToBottom();
+    }
+  }, [chatData]);
 
   if (!userData || !myData) {
     return null;
