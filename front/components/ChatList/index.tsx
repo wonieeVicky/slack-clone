@@ -1,4 +1,4 @@
-﻿import React, { useCallback, forwardRef, MutableRefObject } from 'react';
+﻿import React, { useCallback, forwardRef, RefObject } from 'react';
 import { ChatZone, Section, StickyHeader } from './styles';
 import { IDM } from '@typings/db';
 import Chat from '@components/Chat';
@@ -8,7 +8,7 @@ interface Props {
   chatSections: { [key: string]: IDM[] };
   setSize: (f: (size: number) => number) => Promise<IDM[][] | undefined>;
   isReachingEnd: boolean;
-  scrollRef: MutableRefObject<Scrollbars>;
+  scrollRef: RefObject<Scrollbars>;
 }
 
 const ChatList = forwardRef<Scrollbars, Props>(({ chatSections, setSize, scrollRef, isReachingEnd }) => {
