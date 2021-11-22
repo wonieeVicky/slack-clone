@@ -12,6 +12,7 @@ import useInput from '@hooks/useInput';
 import axios from 'axios';
 import makeSection from '@utils/makeSection';
 import Scrollbars from 'react-custom-scrollbars';
+import useSocket from '@hooks/useSocket';
 
 const DirectMessage = () => {
   const { workspace, id } = useParams<{ workspace: string; id: string }>();
@@ -28,7 +29,7 @@ const DirectMessage = () => {
   );
   // useSWRInfinite는 2차원 배열의 데이터가 생성된다.
   // [[{id: 1}, {id: 2}, {id: 3}, {id: 4}], [{id: 5}, {id: 6}, {id: 7}, {id: 8}]]
-
+  const [socket] = useSocket(workspace);
   const isEmpty = chatData?.[0]?.length === 0;
   const isReachingEnd = isEmpty || (chatData && chatData[chatData.length - 1]?.length < 20) || false;
   const scrollbarRef = useRef<Scrollbars>(null);
@@ -68,6 +69,34 @@ const DirectMessage = () => {
     },
     [chat, chatData, myData, userData, workspace, id],
   );
+
+  const onMessage = useCallback((data: IDM) => {
+    // id는 상대방 아이디
+    if (data.SenderId === Number(id) && myData?.id !== Number(id)) {
+      // 내가 채팅보낼 때는 onSubmitForm에서 scrollToBottom 처리해주므로
+      mutateChat((chatData) => {
+        chatData?.[0].unshift(data);
+        return chatData;
+      }, false).then(() => {
+        if (scrollbarRef.current) {
+          if (
+            scrollbarRef.current.getScrollHeight() <
+            scrollbarRef.current.getClientHeight() + scrollbarRef.current.getScrollTop() + 150
+          ) {
+            console.log('scrollToBottom!', scrollbarRef.current?.getValues());
+            setTimeout(() => scrollbarRef.current?.scrollToBottom(), 50);
+          }
+        }
+      });
+    }
+  }, []);
+
+  useEffect(() => {
+    socket?.on('dm', onMessage);
+    return () => {
+      socket?.off('dm', onMessage);
+    };
+  }, [socket, onMessage]);
 
   // 로딩 시 스크롤바 제일 아래로
   useEffect(() => {
