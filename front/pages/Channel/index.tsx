@@ -1,6 +1,5 @@
 ﻿import React, { useCallback, useRef, useEffect, useState } from 'react';
 import { Container, Header } from './styles';
-import gravatar from 'gravatar';
 import useSWR from 'swr';
 import useSWRInfinite from 'swr/infinite';
 import fetcher from '@utils/fetcher';
