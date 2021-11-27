@@ -78,7 +78,7 @@ const Channel = () => {
   const onMessage = useCallback(
     (data: IChat) => {
       // id는 상대방 아이디
-      if (data.Channel.name === channel && data.UserId !== myData?.id) {
+      if (data.Channel.name === channel && (data.content.startsWith('uploads\\') || data.UserId !== myData?.id)) {
         // 내가 채팅보낼 때는 onSubmitForm에서 scrollToBottom 처리해주므로
         mutateChat((chatData) => {
           chatData?.[0].unshift(data);
@@ -121,7 +121,6 @@ const Channel = () => {
       e.preventDefault();
       console.log(e);
       const formData = new FormData();
-      // 브라우저마다 파일이 저장되는 객체 프로퍼티가 다르다.
       if (e.dataTransfer.items) {
         // Use DataTransferItemList interface to access the file(s)
         for (let i = 0; i < e.dataTransfer.items.length; i++) {
