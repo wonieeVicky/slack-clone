@@ -14,6 +14,7 @@
     "@emotion/babel-plugin": "^11.3.0",
     "@emotion/react": "^11.4.1",
     "@emotion/styled": "^11.3.0",
+    "@jjordy/swr-devtools": "^2.2.0",
     "@loadable/component": "^5.15.0",
     "@pmmmwh/react-refresh-webpack-plugin": "^0.5.1",
     "@types/react": "^17.0.27",
